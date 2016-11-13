@@ -16,6 +16,21 @@ class Smashy:
         if ctx.invoked_subcommand is None:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
 
+    @commands.group(pass_context=True, no_pm=True)
+    async def add(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
+
+    @commands.group(pass_context=True, no_pm=True)
+    async def remove(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
+
+    @commands.group(pass_context=True, no_pm=True)
+    async def get(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
+
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions(manage_channels=True)
     async def smashy_test(self, ctx):
@@ -28,7 +43,7 @@ class Smashy:
         await self.bot.say(tournaments)
         await self.bot.say('test successful')
 
-    @smashy.command(name='addEvent')
+    @add.command(name='Event')
     @checks.admin_or_permissions(manage_channels=True)
     async def add_event(self, *, event_id: int):
         event_ids = self.config.get('event_ids', [])
@@ -41,7 +56,7 @@ class Smashy:
         await self.config.put('event_ids', event_ids)
         await self.bot.say('\U0001f44c')
 
-    @smashy.command(name='removeEvent')
+    @remove.command(name='Event')
     @checks.admin_or_permissions(manage_channels=True)
     async def remove_event(self, *, event_id: int):
         event_ids = self.config.get('event_ids', [])
@@ -55,13 +70,13 @@ class Smashy:
         await self.config.put('event_ids', event_ids)
         await self.bot.say('\U0001f44c')
 
-    @smashy.command(name='addSet')
+    @add.command(name='Set')
     @checks.admin_or_permissions(manage_channels=True)
     async def add_set(self, *, set_id: int):
         await self.add_sepcific_set('set_ids', set_id)
         await self.bot.say('\U0001f44c')
 
-    @smashy.command(name='addDisplayedSet')
+    @add.command(name='displayedSet')
     @checks.admin_or_permissions(manage_channels=True)
     async def add__displayed_set(self, *, set_id: int):
         await self.add_sepcific_set('set_ids', set_id)
@@ -76,13 +91,13 @@ class Smashy:
         set_ids.append(set_id)
         await self.config.put(set_key_name, set_ids)
 
-    @smashy.command(name='removeDisplayedSet')
+    @remove.command(name='DisplayedSet')
     @checks.admin_or_permissions(manage_channels=True)
     async def remove_displayed_set(self, *, displayed_set_id: int):
         await self.remove_specific_set('displayed_set_ids', displayed_set_id)
         await self.bot.say('\U0001f44c')
 
-    @smashy.command(name='removeSet')
+    @remove.command(name='Set')
     @checks.admin_or_permissions(manage_channels=True)
     async def remove_set(self, *, set_id: int):
         await self.remove_specific_set('set_ids', set_id)
