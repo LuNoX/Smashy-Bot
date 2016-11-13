@@ -70,6 +70,15 @@ class Smashy:
         await self.config.put('event_ids', event_ids)
         await self.bot.say('\U0001f44c')
 
+    @smashy.command(name='Sets', pass_context=True)
+    @checks.admin_or_permissions(manage_channels=True)
+    async def get_sets(self, ctx):
+        brackets = smash.tournament_show_with_brackets(default_tournament, '', 'rivals-of-aether-singles')
+        print(brackets)
+        sets = smash.bracket_show_sets(brackets['bracket_ids'][0])
+        print(sets[0])
+        await self.bot.say('test successful')
+
     @add.command(name='Set')
     @checks.admin_or_permissions(manage_channels=True)
     async def add_set(self, *, set_id: int):
