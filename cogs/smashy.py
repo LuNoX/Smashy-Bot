@@ -50,6 +50,22 @@ class Smashy:
         await self.config.put('tournament_names', tournament_names)
         await self.bot.say('\N{OK HAND SIGN}')
 
+    @remove.command(name='tournament')
+    @checks.admin_or_permissions()
+    async def remove_tournament(self, *, tournament_name: str):
+        self.remove_specific_tournament(tournament_name)
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    async def remove_specific_tournament(self, tournament_name):
+        tournament_names = self.config.get('tournament_names', [])
+        if tournament_name in tournament_names:
+            try:
+                tournament_names.remove(tournament_name)
+            except ValueError:
+                pass
+
+        await self.config.put('tournament_names', tournament_names)
+
     @add.command(name='event')
     @checks.admin_or_permissions()
     async def add_event(self, *, event_id: str):
