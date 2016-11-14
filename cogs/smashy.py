@@ -3,13 +3,12 @@ from .utils import config, checks
 from discord.ext import commands
 
 smash = pysmash.SmashGG()
-default_tournament = 'lunox-api-test'
-
 
 class Smashy:
     def __init__(self, bot):
         self.bot = bot
         self.config = config.Config('smashy.json', loop=bot.loop)
+        self.default_tournament = 'lunox-api-test'
 
     @commands.group(pass_context=True, no_pm=True)
     async def smashy(self, ctx):
@@ -32,19 +31,22 @@ class Smashy:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
 
     @smashy.command(name='test', pass_context=True)
-    @checks.admin_or_permissions(manage_channels=True)
+    @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
-        tournaments = smash.tournament_show(default_tournament)
+        tournaments = smash.tournament_show(self.default_tournament)
         print(tournaments)
-        brackets = smash.tournament_show_with_brackets(default_tournament, '', 'rivals-of-aether-singles')
-        print(brackets)
-        sets = smash.bracket_show_sets(brackets['bracket_ids'][0])
-        print(sets[0])
-        await self.bot.say(tournaments)
+        # brackets = smash.tournament_show_with_brackets(default_tournament, '', 'rivals-of-aether-singles')
+        # print(brackets)
+        # sets = smash.bracket_show_sets(brackets['bracket_ids'][0])
+        # print(sets[0])
+        # await self.bot.say(tournaments)
+        # sets = smash.tournament_show_event_brackets(self.default_tournament, 'rivals-of-aether-singles')
+        sets = smash.tournament_show_sets(self.default_tournament)
+        print(sets)
         await self.bot.say('test successful')
 
-    @add.command(name='Event')
-    @checks.admin_or_permissions(manage_channels=True)
+    @add.command(name='event')
+    @checks.admin_or_permissions()
     async def add_event(self, *, event_id: int):
         event_ids = self.config.get('event_ids', [])
 
@@ -54,13 +56,16 @@ class Smashy:
 
         event_ids.append(event_id)
         await self.config.put('event_ids', event_ids)
-        await self.bot.say('\U0001f44c')
+        await self.bot.say('\N{OK HAND SIGN}')
 
-    @remove.command(name='Event')
-    @checks.admin_or_permissions(manage_channels=True)
+    @remove.command(name='event')
+    @checks.admin_or_permissions()
     async def remove_event(self, *, event_id: int):
-        event_ids = self.config.get('event_ids', [])
+        self.remove_specific_event(event_id)
+        await self.bot.say('\N{OK HAND SIGN}')
 
+    async def remove_specific_event(self, event_id):
+        event_ids = self.config.get('event_ids', [])
         if event_id in event_ids:
             try:
                 event_ids.remove(event_id)
@@ -68,31 +73,45 @@ class Smashy:
                 pass
 
         await self.config.put('event_ids', event_ids)
-        await self.bot.say('\U0001f44c')
 
-    @smashy.command(name='Sets', pass_context=True)
-    @checks.admin_or_permissions(manage_channels=True)
-    async def get_sets(self, ctx):
-        brackets = smash.tournament_show_with_brackets(default_tournament, '', 'rivals-of-aether-singles')
-        print(brackets)
-        sets = smash.bracket_show_sets(brackets['bracket_ids'][0])
-        print(sets[0])
-        await self.bot.say('test successful')
+    @get.group(name='sets', pass_context=True, invoke_without_command=True)
+    @checks.admin_or_permissions()
+    async def get_sets(self, ctx, *, tournament: str = None):
+        #replace all of this once show_tournament_sets works
+        #replace this with show_tournament_events['bracket_names'] once the function is implemented in pysmash
+        bracket_names = ['rivals-of-aether-singles', 'melee-singles'] # 'wii-u-singles'] #KeyError needs to be fixed
+        if tournament is None:
+            tournament = self.default_tournament
+        for bracket_name in bracket_names:
+            # print('bracket name: {}'.format(bracket_name))
+            brackets = smash.tournament_show_with_brackets(tournament, '', bracket_name)
+            # print('bracket: {}'.format(brackets))
+            for bracket in brackets['bracket_ids']:
+                # print('bracket id: {}'.format(bracket))
+                sets = smash.bracket_show_sets(bracket)
+                for single_set in sets:
+                    await self.add_specific_set('set_ids', single_set['id'])
+                # print('sets: {}'.format(sets))
+        await self.bot.say('\N{OK HAND SIGN}')
 
-    @add.command(name='Set')
-    @checks.admin_or_permissions(manage_channels=True)
+    @get_sets.command(name='testy')
+    async def testy_test(self):
+        await self.bot.say('success')
+
+    @add.command(name='set')
+    @checks.admin_or_permissions()
     async def add_set(self, *, set_id: int):
-        await self.add_sepcific_set('set_ids', set_id)
-        await self.bot.say('\U0001f44c')
+        await self.add_specific_set('set_ids', set_id)
+        await self.bot.say('\N{OK HAND SIGN}')
 
-    @add.command(name='displayedSet')
-    @checks.admin_or_permissions(manage_channels=True)
+    @add.command(name='displayed_set')
+    @checks.admin_or_permissions()
     async def add__displayed_set(self, *, set_id: int):
-        await self.add_sepcific_set('set_ids', set_id)
-        await self.add_sepcific_set('displayed_set_ids', set_id)
-        await self.bot.say('\U0001f44c')
+        await self.add_specific_set('set_ids', set_id)
+        await self.add_specific_set('displayed_set_ids', set_id)
+        await self.bot.say('\N{OK HAND SIGN}')
 
-    async def add_sepcific_set(self, set_key_name: str, set_id: int):
+    async def add_specific_set(self, set_key_name: str, set_id: int):
         set_ids = self.config.get(set_key_name, [])
         if set_id in set_ids:
             return
@@ -100,18 +119,18 @@ class Smashy:
         set_ids.append(set_id)
         await self.config.put(set_key_name, set_ids)
 
-    @remove.command(name='DisplayedSet')
-    @checks.admin_or_permissions(manage_channels=True)
+    @remove.command(name='displayed_set')
+    @checks.admin_or_permissions()
     async def remove_displayed_set(self, *, displayed_set_id: int):
         await self.remove_specific_set('displayed_set_ids', displayed_set_id)
-        await self.bot.say('\U0001f44c')
+        await self.bot.say('\N{OK HAND SIGN}')
 
-    @remove.command(name='Set')
-    @checks.admin_or_permissions(manage_channels=True)
+    @remove.command(name='set')
+    @checks.admin_or_permissions()
     async def remove_set(self, *, set_id: int):
         await self.remove_specific_set('set_ids', set_id)
         await self.remove_specific_set('displayed_set_ids', set_id)
-        await self.bot.say('\U0001f44c')
+        await self.bot.say('\N{OK HAND SIGN}')
 
     async def remove_specific_set(self, set_key_name: str, set_id: int):
         set_ids = self.config.get(set_key_name, [])
@@ -120,9 +139,54 @@ class Smashy:
             try:
                 set_ids.remove(set_id)
             except ValueError:
+                print('value error')
                 pass
         await self.config.put(set_key_name, set_ids)
 
+    @remove.group(name='all', invoke_without_command=True)
+    @checks.is_owner()
+    async def remove_all(self):
+        # I know this is ugly but list.remove(list_id) didn't work properly for some reason
+        set_ids = self.config.get('set_ids', [])
+        for i in range(len(set_ids)):
+            del set_ids[0]
+            await self.config.put('set_ids', set_ids)
+
+        displayed_set_ids = self.config.get('displayed_set_ids', [])
+        for i in range(len(displayed_set_ids)):
+            del displayed_set_ids[0]
+            await self.config.put('displayed_set_ids', displayed_set_ids)
+
+        event_ids = self.config.get('event_ids', [])
+        for i in range(len(event_ids)):
+            del event_ids[0]
+            await self.config.put('event_ids', event_ids)
+
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @remove_all.command(name='sets')
+    @checks.is_owner()
+    async def remove_all_sets(self):
+        set_ids = self.config.get('set_ids', [])
+        for i in range(len(set_ids)):
+            del set_ids[0]
+            await self.config.put('set_ids', set_ids)
+
+    @remove_all.command(name='displayed_sets')
+    @checks.is_owner()
+    async def remove_all_displayed_sets(self):
+        displayed_set_ids = self.config.get('displayed_set_ids', [])
+        for i in range(len(displayed_set_ids)):
+            del displayed_set_ids[0]
+            await self.config.put('displayed_set_ids', displayed_set_ids)
+
+    @remove_all.command(name='events')
+    @checks.is_owner()
+    async def remove_all_events(self):
+        event_ids = self.config.get('event_ids', [])
+        for i in range(len(event_ids)):
+            del event_ids[0]
+            await self.config.put('event_ids', event_ids)
 
 def setup(bot):
     bot.add_cog(Smashy(bot))
