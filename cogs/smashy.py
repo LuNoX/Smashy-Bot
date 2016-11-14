@@ -66,7 +66,8 @@ class Smashy:
 
         await self.config.put('tournament_names', tournament_names)
 
-    @get.group(name='events', pass_context=True, invoke_without_command=True)
+    # TODO take specific tournament as input
+    @get.command(name='events', pass_context=True)
     @checks.admin_or_permissions()
     async def get_events(self):
         tournament_names = self.config.get('tournament_names', [])
@@ -119,6 +120,10 @@ class Smashy:
 
         await self.config.put('event_ids', event_ids)
 
+    # TODO create bracket commands (add, remove, get)
+    # TODO create the commands tournament and event for the get_bracket.group
+
+    # TODO create the commands tournament, event and bracket
     @get.group(name='sets', pass_context=True, invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_sets(self):
@@ -239,6 +244,8 @@ class Smashy:
             del tournament_names[0]
             await self.config.put('tournament_names', tournament_names)
 
+    # TODO add setup command
+    # TODO add matchups command
 
 def setup(bot):
     bot.add_cog(Smashy(bot))
