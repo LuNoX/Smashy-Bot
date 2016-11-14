@@ -66,6 +66,22 @@ class Smashy:
 
         await self.config.put('tournament_names', tournament_names)
 
+    @get.group(name='events', pass_context=True, invoke_without_command=True)
+    @checks.admin_or_permissions()
+    async def get_events(self):
+        tournament_names = self.config.get('tournament_names', [])
+        print(tournament_names)
+        for tournament_name in tournament_names:
+            print(tournament_name)
+            return # remove this once the following function is implemented in pysmash
+            # noinspection PyUnreachableCode
+            events = smash.tournament_show_events(tournament_name)
+
+            for event_id in events['event_ids']:
+                print(event_id)
+                await self.add_specific_event(event_id)
+        await self.bot.say('\N{OK HAND SIGN}')
+
     @add.command(name='event')
     @checks.admin_or_permissions()
     async def add_event(self, *, event_id: str):
@@ -78,6 +94,14 @@ class Smashy:
         event_ids.append(event_id)
         await self.config.put('event_ids', event_ids)
         await self.bot.say('\N{OK HAND SIGN}')
+
+    async def add_specific_event(self, event_id: str):
+        event_ids = self.config.get('event_ids', [])
+        if event_id in event_ids:
+            return
+
+        event_ids.append(event_id)
+        await self.config.put('event_ids', event_ids)
 
     @remove.command(name='event')
     @checks.admin_or_permissions()
