@@ -33,7 +33,7 @@ class Smashy:
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
-        test = smash.tournament_show('lunox-api-test')
+        test = smash.tournament_show_events('lunox-api-test')
         print(test)
         await self.bot.say('test successful')
 
@@ -66,16 +66,17 @@ class Smashy:
 
         await self.config.put('tournament_names', tournament_names)
 
-    # TODO take specific tournament as input
     @get.command(name='events', pass_context=True)
     @checks.admin_or_permissions()
-    async def get_events(self):
-        tournament_names = self.config.get('tournament_names', [])
+    async def get_events(self, *, tournament_names: str=None):
+        if tournament_names is None:
+            tournament_names = self.config.get('tournament_names', [])
+        else:
+            tournament_names = tournament_names.split(" ")
         print(tournament_names)
         for tournament_name in tournament_names:
             print(tournament_name)
-            return # remove this once the following function is implemented in pysmash
-            # noinspection PyUnreachableCode
+            #this gives names atm instead of ids
             events = smash.tournament_show_events(tournament_name)
 
             for event_id in events['event_ids']:
