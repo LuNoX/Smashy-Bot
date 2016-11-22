@@ -111,6 +111,7 @@ class Smashy:
                 pass
         await self.config.put('event_names', event_names)
 
+    # TODO create the commands tournament and event for the get_brackets.group
     @get.group(name='brackets', invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_brackets(self, *, tournament_names: str = None):
@@ -119,8 +120,8 @@ class Smashy:
         else:
             tournament_names = tournament_names.split(" ")
         for tournament_name in tournament_names:
-            event_names = smash.tournament_show_events(tournament_name)
-            for event_name in event_names['events']:
+            event_names = self.config.get('event_names', [])
+            for event_name in event_names:
                 brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
                 for bracket_id in brackets['bracket_ids']:
                     await self.add_specific_bracket(bracket_id)
@@ -156,9 +157,6 @@ class Smashy:
                 pass
         await self.config.put('bracket_ids', bracket_ids)
 
-    # TODO create bracket commands (add, remove, get)
-    # TODO create the commands tournament and event for the get_brackets.group
-
     # TODO create the commands tournament, event and bracket for the get_sets.group
     @get.group(name='sets', invoke_without_command=True)
     @checks.admin_or_permissions()
@@ -169,7 +167,7 @@ class Smashy:
             event_names = self.config.get('event_names', [])
             for event_name in event_names:
                 sets = smash.tournament_show_sets(tournament_name, event_name)
-                print (sets)
+                print(sets)
                 for specific_set in sets:
                     print(specific_set['id'])
                     await self.add_specific_set(specific_set['id'])
@@ -192,12 +190,19 @@ class Smashy:
             await self.add_specific_displayed_set(displayed_set_id)
         await self.bot.say('\N{OK HAND SIGN}')
 
-    async def add_specific_set(self, set_key_name: str, set_id: str):
-        set_ids = self.config.get(set_key_name, [])
+    async def add_specific_set(self, set_id: str):
+        set_ids = self.config.get('set_ids', [])
         if set_id in set_ids:
             return
         set_ids.append(set_id)
-        await self.config.put(set_key_name, set_ids)
+        await self.config.put('set_ids', set_ids)
+
+    async def add_specific_displayed_set(self, displayed_set_id: str):
+        displayed_set_ids = self.config.get('displayed_set_ids', [])
+        if displayed_set_id in displayed_set_ids:
+            return
+        displayed_set_ids.append(displayed_set_id)
+        await self.config.put('displayed_set_ids', displayed_set_ids)
 
     @remove.command(name='displayed_set')
     @checks.admin_or_permissions()
