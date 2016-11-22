@@ -10,6 +10,7 @@ class Smashy:
         self.bot = bot
         self.config = config.Config('smashy.json', loop=bot.loop)
 
+    # TODo write the help commands
     @commands.group(pass_context=True, no_pm=True)
     async def smashy(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -52,6 +53,7 @@ class Smashy:
         tournament_names.append(tournament_name)
         await self.config.put('tournament_names', tournament_names)
 
+    # TODO remove remove_specific funcs
     @remove.command(name='tournament')
     @checks.admin_or_permissions()
     async def remove_tournament(self, *, tournament_name: str):
@@ -114,7 +116,7 @@ class Smashy:
     # TODO create the commands tournament and event for the get_brackets.group
     @get.group(name='brackets', invoke_without_command=True)
     @checks.admin_or_permissions()
-    async def get_brackets(self, *, tournament_names: str = None):
+    async def get_brackets(self, *, tournament_names: str):
         if tournament_names is None:
             tournament_names = self.config.get('tournament_names', [])
         else:
@@ -171,6 +173,40 @@ class Smashy:
                 for specific_set in sets:
                     print(specific_set['id'])
                     await self.add_specific_set(specific_set['id'])
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @get_sets.command('tournament')
+    @checks.admin_or_permissions()
+    async def get_sets_tournament(self, *, tournament_names: str):
+        tournament_names = tournament_names.split(" ")
+        for tournament_name in tournament_names:
+            events = smash.tournament_show_events(tournament_name)
+            for event_name in events['events']:
+                sets = smash.tournament_show_sets(tournament_name, event_name)
+                for specific_set in sets:
+                    await self.add_specific_set(specific_set['id'])
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @get_sets.command('event')
+    @checks.admin_or_permissions()
+    async def get_sets_event(self, *, event_names: str):
+        event_names = event_names.split(" ")
+        tournament_names = self.config.get('tournament_names', [])
+        for tournament_name in tournament_names:
+            for event_name in event_names:
+                sets = smash.tournament_show_sets(tournament_name, event_name)
+                for specific_set in sets:
+                    await self.add_specific_set(specific_set['id'])
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @get_sets.command('bracket')
+    @checks.admin_or_permissions()
+    async def get_sets_bracket(self, *, bracket_ids: str):
+        bracket_ids = bracket_ids.split(" ")
+        for bracket_id in bracket_ids:
+            sets = smash.bracket_show_sets(bracket_id)
+            for specific_set in sets:
+                await self.add_specific_set(specific_set['id'])
         await self.bot.say('\N{OK HAND SIGN}')
 
     @add.command(name='set')
