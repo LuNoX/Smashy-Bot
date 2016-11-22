@@ -68,7 +68,7 @@ class Smashy:
 
         await self.config.put('tournament_names', tournament_names)
 
-    @get.command(name='events')
+    @get.group(name='events', invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_events(self, *, tournament_names: str = None):
         if tournament_names is None:
@@ -110,6 +110,51 @@ class Smashy:
             except ValueError:
                 pass
         await self.config.put('event_names', event_names)
+
+    @get.group(name='brackets', invoke_without_command=True)
+    @checks.admin_or_permissions()
+    async def get_brackets(self, *, tournament_names: str = None):
+        if tournament_names is None:
+            tournament_names = self.config.get('tournament_names', [])
+        else:
+            tournament_names = tournament_names.split(" ")
+        for tournament_name in tournament_names:
+            event_names = smash.tournament_show_events(tournament_name)
+            for event_name in event_names['events']:
+                brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
+                for bracket_id in brackets['bracket_ids']:
+                    await self.add_specific_bracket(bracket_id)
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @add.command(name='bracket')
+    @checks.admin_or_permissions()
+    async def add_bracket(self, *, bracket_ids: str):
+        bracket_ids = bracket_ids.split(" ")
+        for bracket_id in bracket_ids:
+            await self.add_bracket(bracket_id)
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    async def add_specific_bracket(self, bracket_id: str):
+        bracket_ids = self.config.get('bracket_ids', [])
+        if bracket_id in bracket_ids:
+            return
+        bracket_ids.append(bracket_id)
+        await self.config.put('bracket_ids', bracket_ids)
+
+    @remove.command(name='bracket')
+    @checks.admin_or_permissions()
+    async def remove_bracket(self, *, bracket_id: str):
+        self.remove_specific_bracket(bracket_id)
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    async def remove_specific_bracket(self, bracket_id):
+        bracket_ids = self.config.get('bracket_ids', [])
+        if bracket_id in bracket_ids:
+            try:
+                bracket_ids.remove(bracket_id)
+            except ValueError:
+                pass
+        await self.config.put('bracket_ids', bracket_ids)
 
     # TODO create bracket commands (add, remove, get)
     # TODO create the commands tournament and event for the get_brackets.group
