@@ -71,129 +71,90 @@ class Smashy:
 
     @remove.command(name='tournament')
     @checks.admin_or_permissions()
-    async def remove_tournament(self, *specific_tournament_names: str):
-        tournament_names = self.config.get('tournament_names', [])
-        for specific_tournament_name in specific_tournament_names:
-            if specific_tournament_name in tournament_names:
-                try:
-                    tournament_names.remove(specific_tournament_name)
-                except ValueError:
-                    pass
-
-            await self.config.put('tournament_names', tournament_names)
+    async def remove_tournament(self, *tournament_names: str):
+        for tournament_name in tournament_names:
+            await self.remove_specific(tournament_name, 'tournament_names')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove.command(name='event')
     @checks.admin_or_permissions()
-    async def remove_event(self, *specific_event_names: str):
-            event_names = self.config.get('event_names', [])
-            for specific_event_name in specific_event_names:
-                if specific_event_name in event_names:
-                    try:
-                        event_names.remove(specific_event_name)
-                    except ValueError:
-                        pass
-                await self.config.put('event_names', event_names)
-            await self.bot.say('\N{OK HAND SIGN}')
+    async def remove_event(self, *event_names: str):
+        for event_name in event_names:
+            await self.remove_specific(event_name, 'event_names')
+        await self.bot.say('\N{OK HAND SIGN}')
 
     @remove.command(name='bracket')
     @checks.admin_or_permissions()
-    async def remove_bracket(self, *specific_bracket_ids: str):
-        bracket_ids = self.config.get('bracket_ids', [])
-        for specific_bracket_id in specific_bracket_ids:
-            if specific_bracket_id in bracket_ids:
-                try:
-                    bracket_ids.remove(specific_bracket_id)
-                except ValueError:
-                    pass
-            await self.config.put('bracket_ids', bracket_ids)
+    async def remove_bracket(self, *bracket_ids: str):
+        for bracket_id in bracket_ids:
+            await self.remove_specific(bracket_id, 'bracket_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove.command(name='displayed_set')
     @checks.admin_or_permissions()
-    async def remove_displayed_set(self, *displayed_set_id: str):
-        displayed_set_ids = self.config.get('displayed_set_ids', [])
-        if displayed_set_id in displayed_set_ids:
-            try:
-                displayed_set_ids.remove(displayed_set_id)
-            except ValueError:
-                pass
-        await self.config.put('displayed_set_ids', displayed_set_ids)
+    async def remove_displayed_set(self, *displayed_set_ids: str):
+        for displayed_set_id in displayed_set_ids:
+            await self.remove_specific(displayed_set_id, 'displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove.command(name='set', pass_context=True)
     @checks.admin_or_permissions()
-    async def remove_set(self, ctx, *set_id: str):
-        set_ids = self.config.get('set_ids', [])
-        if set_id in set_ids:
+    async def remove_set(self, ctx, *set_ids: str):
+        for set_id in set_ids:
+            await self.remove_specific(set_id, 'set_ids')
+        await ctx.invoke(self.remove_displayed_set, *set_ids)
+
+    async def remove_specific(self, specific: str, specific_db_key: str):
+        specifics = self.config.get(specific_db_key, [])
+        if specific in specifics:
             try:
-                set_ids.remove(set_id)
+                specifics.remove(specific)
             except ValueError:
                 pass
-        await self.config.put('set_ids', set_ids)
-        await ctx.invoke(self.remove_displayed_set, *set_id)
+        await self.config.put(specific_db_key, specifics)
 
     @remove.group(name='all', invoke_without_command=True)
     @checks.is_owner()
     async def remove_all(self):
-        # I know this is ugly but list.remove(list_id) didn't work properly for some reason
-        displayed_set_ids = self.config.get('displayed_set_ids', [])
-        for i in range(len(displayed_set_ids)):
-            del displayed_set_ids[0]
-            await self.config.put('displayed_set_ids', displayed_set_ids)
-
-        set_ids = self.config.get('set_ids', [])
-        for i in range(len(set_ids)):
-            del set_ids[0]
-            await self.config.put('set_ids', set_ids)
-
-        event_names = self.config.get('event_names', [])
-        for i in range(len(event_names)):
-            del event_names[0]
-            await self.config.put('event_names', event_names)
-
-        tournament_names = self.config.get('tournament_names', [])
-        for i in range(len(tournament_names)):
-            del tournament_names[0]
-            await self.config.put('tournament_names', tournament_names)
-
+        await self.remove_all_specific('displayed_set_ids')
+        await self.remove_all_specific('set_ids')
+        await self.remove_all_specific('event_names')
+        await self.remove_all_specific('tournament_names')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove_all.command(name='displayed_sets')
     @checks.is_owner()
     async def remove_all_displayed_sets(self):
-        displayed_set_ids = self.config.get('displayed_set_ids', [])
-        for i in range(len(displayed_set_ids)):
-            del displayed_set_ids[0]
-            await self.config.put('displayed_set_ids', displayed_set_ids)
+        await self.remove_all_specific('displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove_all.command(name='sets')
     @checks.is_owner()
     async def remove_all_sets(self):
-        set_ids = self.config.get('set_ids', [])
-        for i in range(len(set_ids)):
-            del set_ids[0]
-            await self.config.put('set_ids', set_ids)
+        await self.remove_all_specific('set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove_all.command(name='events')
     @checks.is_owner()
     async def remove_all_events(self):
-        event_names = self.config.get('event_names', [])
-        for i in range(len(event_names)):
-            del event_names[0]
-            await self.config.put('event_names', event_names)
+        await self.remove_all_specific('event_names')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove_all.command(name='tournaments')
     @checks.is_owner()
     async def remove_all_tournaments(self):
-        tournament_names = self.config.get('tournament_names', [])
-        for i in range(len(tournament_names)):
-            del tournament_names[0]
-            await self.config.put('tournament_names', tournament_names)
+        await self.remove_all_specific('tournament_names')
         await self.bot.say('\N{OK HAND SIGN}')
+
+    async def remove_all_specific(self, specific_db_key: str):
+        # I know this is ugly but list.remove(list_id) didn't work properly for some reason
+        # This also can probably be done way easier by using the config.remove or config.put functions,
+        # but I only realised that afterwards...
+        # TODO make remove_all pretty
+        specifics = self.config.get(specific_db_key, [])
+        for i in range(len(specifics)):
+            del specifics[0]
+        await self.config.put(specific_db_key, specifics)
 
     @commands.group(pass_context=True, no_pm=True)
     async def get(self, ctx):
@@ -306,8 +267,8 @@ class Smashy:
         print(test)
         await self.bot.say('test successful')
 
-        # TODO add setup command
-        # TODO add matchups command
+    # TODO add setup command
+    # TODO add matchups command
 
 
 def setup(bot):
