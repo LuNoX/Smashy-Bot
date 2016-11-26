@@ -234,7 +234,7 @@ class Smashy:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
-    @get_sets.command('tournament')
+    @get_sets.command(name='tournament')
     @checks.admin_or_permissions()
     async def get_sets_tournament(self, *tournament_names: str):
         for tournament_name in tournament_names:
@@ -245,7 +245,7 @@ class Smashy:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
-    @get_sets.command('event')
+    @get_sets.command(name='event')
     @checks.admin_or_permissions()
     async def get_sets_event(self, *event_names: str):
         tournament_names = self.config.get('tournament_names', [])
@@ -256,7 +256,7 @@ class Smashy:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
-    @get_sets.command('bracket')
+    @get_sets.command(name='bracket')
     @checks.admin_or_permissions()
     async def get_sets_bracket(self, *bracket_ids: str):
         for bracket_id in bracket_ids:
