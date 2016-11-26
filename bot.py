@@ -32,7 +32,8 @@ initial_extensions = [
     # 'cogs.api',
     # 'cogs.stars',
     'cogs.admin',
-    'cogs.buttons'
+    'cogs.buttons',
+    'cogs.aethernet'
     # 'cogs.pokemon'
 ]
 
@@ -107,10 +108,10 @@ async def do(ctx, times: int, *, command):
         await bot.process_commands(msg)
 
 
-@bot.command()
-async def changelog():
-    """Gives a URL to the current bot changelog."""
-    await bot.say('https://discord.gg/0118rJdtd1rVJJfuI')
+# @bot.command()
+# async def changelog():
+#     """Gives a URL to the current bot changelog."""
+#     await bot.say('https://discord.gg/0118rJdtd1rVJJfuI')
 
 
 def load_credentials():

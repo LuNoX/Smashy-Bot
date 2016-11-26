@@ -1,6 +1,7 @@
 import pysmash
 from .utils import config, checks
 from discord.ext import commands
+import discord
 
 smash = pysmash.SmashGG()
 
@@ -267,7 +268,7 @@ class Smashy:
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
-        test = smash.tournament_show_events('lunox-api-test')
+        test = self.config.get('event_names', {})
         print(test)
         await self.bot.say('test successful')
 
@@ -285,7 +286,33 @@ class Smashy:
         await ctx.invoke(self.get_sets)
         await self.bot.say('Setup complete!')
 
-    # TODO add matchups command
+    # TODO make matchups pretty
+    # TODO make matchups support doubles
+    @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
+    async def matchups(self, ctx):
+        displayed_set_ids = self.config.get('displayed_set_ids', [])
+        displayed_set_ids_as_set = set(displayed_set_ids)
+        set_ids = self.config.get('set_ids', [])
+        set_ids_as_set = set(set_ids)
+        not_displayed_set_ids = set_ids_as_set - displayed_set_ids_as_set
+
+        for not_displayed_set_id in list(not_displayed_set_ids):
+            not_displayed_set = smash.show(not_displayed_set_id, 'set') # this func will be added to pysmash soon
+            if not not_displayed_set['entrant1Id'] == 'None' and not not_displayed_set['entrant2Id'] == 'None':
+                event_name = smash.show(not_displayed_set['eventId']).replace('-', '-').title()
+                entrant_1_name = self.determine_player_name(not_displayed_set['entrant1Id'], ctx.message.server)
+                entrant_2_name = self.determine_player_name(not_displayed_set['entrant2Id'], ctx.message.server)
+                await self.bot.say('{} and {} your {] match is up!').format(entrant_1_name, entrant_2_name, event_name)
+                await self.add_specific(not_displayed_set, 'displayed_set_ids')
+
+    @staticmethod
+    async def determine_player_name(entrant_id: str, server: discord.Server):
+        entrant_name = smash.show(entrant_id, 'player')['name']
+        entrant_member = server.get_member_named(entrant_name)
+        if entrant_member is None:
+            return entrant_name
+        else:
+            return '@{}'.format(entrant_member.name)
 
 
 def setup(bot):
