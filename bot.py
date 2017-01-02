@@ -14,7 +14,7 @@ import sys
 from collections import Counter
 
 description = """
-Hello! I am a bot written by Danny to provide some nice utilities.
+Hello! I am Smashy, a bot that can access the Smash.gg API and some other things.
 """
 
 initial_extensions = [
