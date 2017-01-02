@@ -41,7 +41,7 @@ class Buttons:
         """What is love?"""
         await self.bot.say('http://i.imgur.com/JthwtGA.png')
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def bored(self):
         """boredom looms"""
         await self.bot.say('http://i.imgur.com/BuTKSzf.png')
@@ -131,22 +131,22 @@ class Buttons:
     #
     #     return entries
 
-    @commands.command(aliases=['google'])
-    async def g(self, *, query):
-        """Searches google and gives you top result."""
-        try:
-            entries = await self.get_google_entries(query)
-        except RuntimeError as e:
-            await self.bot.say(str(e))
-        else:
-            next_two = entries[1:3]
-            if next_two:
-                formatted = '\n'.join(map(lambda x: '<%s>' % x, next_two))
-                msg = '{}\n\n**See also:**\n{}'.format(entries[0], formatted)
-            else:
-                msg = entries[0]
-
-            await self.bot.say(msg)
+    # @commands.command(aliases=['google'])
+    # async def g(self, *, query):
+    #     """Searches google and gives you top result."""
+    #     try:
+    #         entries = await self.get_google_entries(query)
+    #     except RuntimeError as e:
+    #         await self.bot.say(str(e))
+    #     else:
+    #         next_two = entries[1:3]
+    #         if next_two:
+    #             formatted = '\n'.join(map(lambda x: '<%s>' % x, next_two))
+    #             msg = '{}\n\n**See also:**\n{}'.format(entries[0], formatted)
+    #         else:
+    #             msg = entries[0]
+    #
+    #         await self.bot.say(msg)
 
 def setup(bot):
     bot.add_cog(Buttons(bot))
