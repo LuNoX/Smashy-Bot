@@ -268,8 +268,9 @@ class Smashy:
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
-        test = self.config.get('event_names', {})
+        test = Smashy.determine_player_name('370746', ctx.message.server)
         print(test)
+        await self.bot.say(test)
         await self.bot.say('test successful')
 
     @commands.command(name='setup', pass_context=True)
@@ -286,7 +287,6 @@ class Smashy:
         await ctx.invoke(self.get_sets)
         await self.bot.say('Setup complete!')
 
-    # TODO make matchups pretty
     # TODO make matchups support doubles
     @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
     async def matchups(self, ctx):
@@ -297,22 +297,26 @@ class Smashy:
         not_displayed_set_ids = set_ids_as_set - displayed_set_ids_as_set
 
         for not_displayed_set_id in list(not_displayed_set_ids):
-            not_displayed_set = smash.show(not_displayed_set_id, 'set') # this func will be added to pysmash soon
-            if not not_displayed_set['entrant1Id'] == 'None' and not not_displayed_set['entrant2Id'] == 'None':
-                event_name = smash.show(not_displayed_set['eventId']).replace('-', '-').title()
+            not_displayed_set = smash.show('set', not_displayed_set_id, 'sets')
+            if not not_displayed_set['entrant1Id'] is None and not not_displayed_set['entrant2Id'] is None \
+                    and not_displayed_set['loserId'] is None and not_displayed_set['winnerId'] is None:
+                event_name = smash.show('event', not_displayed_set['eventId'], 'event')['typeDisplayStr']
                 entrant_1_name = self.determine_player_name(not_displayed_set['entrant1Id'], ctx.message.server)
                 entrant_2_name = self.determine_player_name(not_displayed_set['entrant2Id'], ctx.message.server)
-                await self.bot.say('{} and {} your {] match is up!').format(entrant_1_name, entrant_2_name, event_name)
-                await self.add_specific(not_displayed_set, 'displayed_set_ids')
+                tmp = '{} and {} your {} match is up!'.format(entrant_1_name, entrant_2_name, event_name)
+                await self.bot.say(tmp)
+                await self.add_specific(not_displayed_set['id'], 'displayed_set_ids')
+        await self.bot.say('\N{OK HAND SIGN}')
 
     @staticmethod
-    async def determine_player_name(entrant_id: str, server: discord.Server):
-        entrant_name = smash.show(entrant_id, 'player')['name']
+    def determine_player_name(entrant_id: str, server: discord.Server):
+        entrant_name = smash.show('entrant', entrant_id, 'entrants')
+        entrant_name = entrant_name['name']
         entrant_member = server.get_member_named(entrant_name)
         if entrant_member is None:
             return entrant_name
         else:
-            return '@{}'.format(entrant_member.name)
+            return entrant_member.mention
 
 
 def setup(bot):

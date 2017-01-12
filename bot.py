@@ -32,8 +32,7 @@ initial_extensions = [
     # 'cogs.api',
     # 'cogs.stars',
     'cogs.admin',
-    'cogs.buttons',
-    'cogs.aethernet'
+    'cogs.buttons'
     # 'cogs.pokemon'
 ]
 
