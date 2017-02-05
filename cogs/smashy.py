@@ -2,6 +2,7 @@ import pysmash
 from .utils import config, checks
 from discord.ext import commands
 import discord
+import time
 
 smash = pysmash.SmashGG()
 
@@ -261,6 +262,7 @@ class Smashy:
     async def get_sets_bracket(self, *bracket_ids: str):
         for bracket_id in bracket_ids:
             sets = smash.bracket_show_sets(bracket_id)
+            print(sets)
             for specific_set in sets:
                 await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -268,9 +270,8 @@ class Smashy:
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
-        test = Smashy.determine_player_name('370746', ctx.message.server)
-        print(test)
-        await self.bot.say(test)
+        await ctx.invoke(self.remove_all_displayed_sets)
+        await ctx.invoke(self.matchups)
         await self.bot.say('test successful')
 
     @commands.command(name='setup', pass_context=True)
@@ -287,36 +288,71 @@ class Smashy:
         await ctx.invoke(self.get_sets)
         await self.bot.say('Setup complete!')
 
-    # TODO make matchups support doubles
+    # TODO make it respond in a dedicated channel
+    # TODO make doubles work
     @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
     async def matchups(self, ctx):
+        await ctx.invoke(self.matchups_timesensitive, False)
+
+    @matchups.command(name='timesensitive', pass_context=True)
+    async def matchups_timesensitive(self, ctx, timecheck: bool=True):
         displayed_set_ids = self.config.get('displayed_set_ids', [])
         displayed_set_ids_as_set = set(displayed_set_ids)
         set_ids = self.config.get('set_ids', [])
         set_ids_as_set = set(set_ids)
         not_displayed_set_ids = set_ids_as_set - displayed_set_ids_as_set
-
         for not_displayed_set_id in list(not_displayed_set_ids):
             not_displayed_set = smash.show('set', not_displayed_set_id, 'sets')
-            if not not_displayed_set['entrant1Id'] is None and not not_displayed_set['entrant2Id'] is None \
-                    and not_displayed_set['loserId'] is None and not_displayed_set['winnerId'] is None:
-                event_name = smash.show('event', not_displayed_set['eventId'], 'event')['typeDisplayStr']
-                entrant_1_name = self.determine_player_name(not_displayed_set['entrant1Id'], ctx.message.server)
-                entrant_2_name = self.determine_player_name(not_displayed_set['entrant2Id'], ctx.message.server)
-                tmp = '{} and {} your {} match is up!'.format(entrant_1_name, entrant_2_name, event_name)
-                await self.bot.say(tmp)
-                await self.add_specific(not_displayed_set['id'], 'displayed_set_ids')
+            if not_displayed_set['loserId'] is not None or not_displayed_set['winnerId'] is not None:
+                await self.add_specific(not_displayed_set_id, 'displayed_set_ids')
+            elif not not_displayed_set['entrant1Id'] is None and not not_displayed_set['entrant2Id'] is None:
+                if timecheck:
+                    has_started_yet = False
+                    start = not_displayed_set['startAt']
+                    if start is None:
+                        has_started_yet = False
+                    elif start < time.time():
+                        has_started_yet = True
+                else:
+                    has_started_yet = True
+                if has_started_yet:
+                    event_name = smash.show('event', not_displayed_set['eventId'], 'event')['typeDisplayStr']
+                    if event_name.endswith(' '): #Smash.gg doesnt say doubles in the name, instead there is a space
+                        event_name += 'Doubles'
+                    entrant_1_name = self.determine_player_name(not_displayed_set['entrant1Id'], ctx.message.server)
+                    entrant_2_name = self.determine_player_name(not_displayed_set['entrant2Id'], ctx.message.server)
+                    tmp = '{} and {} your {} match is up!'.format(entrant_1_name, entrant_2_name, event_name)
+                    await self.bot.say(tmp)
+                    await self.add_specific(not_displayed_set_id, 'displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @staticmethod
     def determine_player_name(entrant_id: str, server: discord.Server):
         entrant_name = smash.show('entrant', entrant_id, 'entrants')
         entrant_name = entrant_name['name']
-        entrant_member = server.get_member_named(entrant_name)
-        if entrant_member is None:
-            return entrant_name
+        if ' / ' not in entrant_name: #this could lead to errors with 2 users named "man / 1" and "man"
+            entrant_member = server.get_member_named(entrant_name)
+            if entrant_member is None:
+                return entrant_name
+            else:
+                return entrant_member.mention
         else:
-            return entrant_member.mention
+            entrant_names = entrant_name.split(' / ')
+            entrant_members = ''
+            first = True
+            for entrant_name in entrant_names:
+                entrant_member = server.get_member_named(entrant_name)
+                if entrant_member is None:
+                    entrant_member = entrant_name
+                else:
+                    entrant_member = entrant_member.mention
+                if first:
+                    first = False
+                else:
+                    entrant_members += ' / '
+                entrant_members += entrant_member
+            return entrant_members
+
 
 
 def setup(bot):
