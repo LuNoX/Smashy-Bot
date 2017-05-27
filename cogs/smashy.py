@@ -176,7 +176,11 @@ class Smashy:
     async def get_events(self):
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
-            event_names = smash.tournament_show_events(tournament_name)
+            try:
+                event_names = smash.tournament_show_events(tournament_name)
+            except Exception as e:
+                await self.bot.say('\N{PISTOL}')
+                await self.bot.say('{}: {}'.format(type(e).__name__, e))
             for event_name in event_names['events']:
                 await self.add_specific(event_name, 'event_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -185,7 +189,11 @@ class Smashy:
     @checks.admin_or_permissions()
     async def get_events_tournament(self, *tournament_names: str):
         for tournament_name in tournament_names:
-            event_names = smash.tournament_show_events(tournament_name)
+            try:
+                event_names = smash.tournament_show_events(tournament_name)
+            except Exception as e:
+                await self.bot.say('\N{PISTOL}')
+                await self.bot.say('{}: {}'.format(type(e).__name__, e))
             for event_name in event_names['events']:
                 await self.add_specific(event_name, 'event_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -197,7 +205,11 @@ class Smashy:
         for tournament_name in tournament_names:
             event_names = self.config.get('event_names', [])
             for event_name in event_names:
-                brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
+                try:
+                    brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
+                except Exception as e:
+                    await self.bot.say('\N{PISTOL}')
+                    await self.bot.say('{}: {}'.format(type(e).__name__, e))
                 for bracket_id in brackets['bracket_ids']:
                     await self.add_specific(bracket_id, 'bracket_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -219,7 +231,11 @@ class Smashy:
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             for event_name in event_names:
-                brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
+                try:
+                    brackets = smash.tournament_show_event_brackets(tournament_name, event_name)
+                except Exception as e:
+                    await self.bot.say('\N{PISTOL}')
+                    await self.bot.say('{}: {}'.format(type(e).__name__, e))
                 for bracket_id in brackets['bracket_ids']:
                     await self.add_specific(bracket_id, 'bracket_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -231,7 +247,11 @@ class Smashy:
         for tournament_name in tournament_names:
             event_names = self.config.get('event_names', [])
             for event_name in event_names:
-                sets = smash.tournament_show_sets(tournament_name, event_name)
+                try:
+                    sets = smash.tournament_show_sets(tournament_name, event_name)
+                except Exception as e:
+                    await self.bot.say('\N{PISTOL}')
+                    await self.bot.say('{}: {}'.format(type(e).__name__, e))
                 for specific_set in sets:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -240,9 +260,17 @@ class Smashy:
     @checks.admin_or_permissions()
     async def get_sets_tournament(self, *tournament_names: str):
         for tournament_name in tournament_names:
-            events = smash.tournament_show_events(tournament_name)
+            try:
+                events = smash.tournament_show_events(tournament_name)
+            except Exception as e:
+                await self.bot.say('\N{PISTOL}')
+                await self.bot.say('{}: {}'.format(type(e).__name__, e))
             for event_name in events['events']:
-                sets = smash.tournament_show_sets(tournament_name, event_name)
+                try:
+                    sets = smash.tournament_show_sets(tournament_name, event_name)
+                except Exception as e:
+                    await self.bot.say('\N{PISTOL}')
+                    await self.bot.say('{}: {}'.format(type(e).__name__, e))
                 for specific_set in sets:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -253,7 +281,11 @@ class Smashy:
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             for event_name in event_names:
-                sets = smash.tournament_show_sets(tournament_name, event_name)
+                try:
+                    sets = smash.tournament_show_sets(tournament_name, event_name)
+                except Exception as e:
+                    await self.bot.say('\N{PISTOL}')
+                    await self.bot.say('{}: {}'.format(type(e).__name__, e))
                 for specific_set in sets:
                     await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -262,7 +294,11 @@ class Smashy:
     @checks.admin_or_permissions()
     async def get_sets_bracket(self, *bracket_ids: str):
         for bracket_id in bracket_ids:
-            sets = smash.bracket_show_sets(bracket_id)
+            try:
+                sets = smash.bracket_show_sets(bracket_id)
+            except Exception as e:
+                await self.bot.say('\N{PISTOL}')
+                await self.bot.say('{}: {}'.format(type(e).__name__, e))
             print(sets)
             for specific_set in sets:
                 await self.add_specific(specific_set['id'], 'set_ids')
