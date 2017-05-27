@@ -66,7 +66,7 @@ class Smashy:
         specifics.append(specific)
         await self.config.put(specific_db_key, specifics)
 
-    @commands.group(pass_context=True, no_pm=True)
+    @commands.group(pass_context=True, no_pm=True, aliases=['delete', 'drop'])
     async def remove(self, ctx):
         if ctx.invoked_subcommand is None:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
@@ -165,6 +165,7 @@ class Smashy:
             del specifics[0]
         await self.config.put(specific_db_key, specifics)
 
+    # TODO catch exceptions
     @commands.group(pass_context=True, no_pm=True)
     async def get(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -290,6 +291,7 @@ class Smashy:
 
     # TODO make it respond in a dedicated channel
     # TODO make doubles work
+    # TODO add a clock that invokes this command
     @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
     async def matchups(self, ctx):
         await ctx.invoke(self.matchups_timesensitive, False)
@@ -326,6 +328,7 @@ class Smashy:
                     await self.add_specific(not_displayed_set_id, 'displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
+    #TODO: add a lookuptable for all smashgg and discord names
     @staticmethod
     def determine_player_name(entrant_id: str, server: discord.Server):
         entrant_name = smash.show('entrant', entrant_id, 'entrants')
