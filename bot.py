@@ -33,6 +33,7 @@ initial_extensions = [
     # 'cogs.stars',
     'cogs.admin',
     'cogs.buttons'
+    # 'cogs.aethernet'
     # 'cogs.pokemon'
 ]
 
@@ -40,7 +41,7 @@ discord_logger = logging.getLogger('discord')
 discord_logger.setLevel(logging.CRITICAL)
 log = logging.getLogger()
 log.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='rdanny.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='smashy.log', encoding='utf-8', mode='w')
 log.addHandler(handler)
 
 help_attrs = dict(hidden=True)
