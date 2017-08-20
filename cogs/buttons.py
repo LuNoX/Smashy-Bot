@@ -26,6 +26,31 @@ class Buttons:
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command()
+    async def whoosh(self):
+        """That joke went right over your head."""
+        await self.bot.say('http://i.imgur.com/NQRhzEs.png')
+
+    @commands.command()
+    async def unimpressed(self):
+        """meh"""
+        await self.bot.say('https://i.redd.it/kftgayg1uwzy.gif')
+
+    @commands.command()
+    async def ready(self):
+        """u rdy m8"""
+        await self.bot.say('you ready mate?')
+
+    @commands.command(name='checkThePage', aliases=['ctp'])
+    async def check_the_page(self):
+        """just check it"""
+        await self.bot.say('**just check the tournament page, man**')
+
+    @commands.command()
+    async def fam(self):
+        """got you"""
+        await self.bot.say('fam got you i')
+
     @commands.command(hidden=True)
     async def feelgood(self):
         """press"""
