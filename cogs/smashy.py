@@ -328,6 +328,7 @@ class Smashy:
     # TODO make it respond in a dedicated channel
     # TODO make doubles work
     # TODO add a clock that invokes this command
+    @checks.mod_or_permissions()
     @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
     async def matchups(self, ctx):
         await ctx.invoke(self.matchups_timesensitive, False)
@@ -339,37 +340,44 @@ class Smashy:
         set_ids = self.config.get('set_ids', [])
         set_ids_as_set = set(set_ids)
         not_displayed_set_ids = set_ids_as_set - displayed_set_ids_as_set
+        print(not_displayed_set_ids)
         for not_displayed_set_id in list(not_displayed_set_ids):
             not_displayed_set = smash.show('set', not_displayed_set_id, 'sets')
             if not_displayed_set['loserId'] is not None or not_displayed_set['winnerId'] is not None:
                 await self.add_specific(not_displayed_set_id, 'displayed_set_ids')
-            elif not not_displayed_set['entrant1Id'] is None and not not_displayed_set['entrant2Id'] is None:
+            elif not_displayed_set['entrant1Id'] is not None and not_displayed_set['entrant2Id'] is not None:
                 if timecheck:
                     has_started_yet = False
                     start = not_displayed_set['startAt']
-                    if start is None:
-                        has_started_yet = False
-                    elif start < time.time():
+                    if start is not None and start < time.time():
                         has_started_yet = True
                 else:
                     has_started_yet = True
                 if has_started_yet:
                     event_name = smash.show('event', not_displayed_set['eventId'], 'event')['typeDisplayStr']
-                    if event_name.endswith(' '): #Smash.gg doesnt say doubles in the name, instead there is a space
+                    if event_name.endswith(' '):  # Smash.gg doesnt say doubles in the name, instead there is a space
                         event_name += 'Doubles'
                     entrant_1_name = self.determine_player_name(not_displayed_set['entrant1Id'], ctx.message.server)
                     entrant_2_name = self.determine_player_name(not_displayed_set['entrant2Id'], ctx.message.server)
-                    tmp = '{} and {} your {} match is up!'.format(entrant_1_name, entrant_2_name, event_name)
-                    await self.bot.say(tmp)
+                    message = '{} and {} your {} match is up!'.format(entrant_1_name, entrant_2_name, event_name)
+                    await self.bot.say(message)
                     await self.add_specific(not_displayed_set_id, 'displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
-    #TODO: add a lookuptable for all smashgg and discord names
+    @commands.command(pass_context=True)
+    async def next(self, ctx):
+        await self.bot.say('Getting sets')
+        await ctx.invoke(self.get_sets)
+        await self.bot.say('Printing matchups')
+        await ctx.invoke(self.matchups_timesensitive)
+
+    # TODO: add a lookuptable for all smashgg and discord names
     @staticmethod
     def determine_player_name(entrant_id: str, server: discord.Server):
         entrant_name = smash.show('entrant', entrant_id, 'entrants')
         entrant_name = entrant_name['name']
-        if ' / ' not in entrant_name: #this could lead to errors with 2 users named "man / 1" and "man"
+        if ' / ' not in entrant_name:  # Smash.gg separates the player names of a Doubles team with ' / '
+                                        #  this could lead to errors with 2 users named "man / 1" and "man"
             entrant_member = server.get_member_named(entrant_name)
             if entrant_member is None:
                 return entrant_name
@@ -385,13 +393,12 @@ class Smashy:
                     entrant_member = entrant_name
                 else:
                     entrant_member = entrant_member.mention
-                if first:
+                if first: #  TODO: Make this work with more than 2 people
                     first = False
                 else:
                     entrant_members += ' / '
                 entrant_members += entrant_member
             return entrant_members
-
 
 
 def setup(bot):
