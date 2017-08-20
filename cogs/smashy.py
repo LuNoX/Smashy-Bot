@@ -12,20 +12,16 @@ class Smashy:
         self.bot = bot
         self.config = config.Config('smashy.json', loop=bot.loop)
 
-    # TODO write the help commands
-    @commands.group(pass_context=True, no_pm=True)
-    async def smashy(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
-
     @commands.group(pass_context=True, no_pm=True)
     async def add(self, ctx):
+        """Adds an item(s) to the database."""
         if ctx.invoked_subcommand is None:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
 
     @add.command(name='tournament')
     @checks.admin_or_permissions()
     async def add_tournament(self, *tournament_names: str):
+        """Adds a tournament(s) to the database."""
         for tournament_name in tournament_names:
             await self.add_specific(tournament_name, 'tournament_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -33,6 +29,7 @@ class Smashy:
     @add.command(name='event')
     @checks.admin_or_permissions()
     async def add_event(self, *event_names: str):
+        """Adds an event(s) to the database."""
         for event_name in event_names:
             await self.add_specific(event_name, 'event_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -40,6 +37,7 @@ class Smashy:
     @add.command(name='bracket')
     @checks.admin_or_permissions()
     async def add_bracket(self, *bracket_ids: str):
+        """Adds a bracket(s) to the database."""
         for bracket_id in bracket_ids:
             await self.add_specific(bracket_id, 'bracket_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -47,6 +45,7 @@ class Smashy:
     @add.command(name='set')
     @checks.admin_or_permissions()
     async def add_set(self, *set_ids: str):
+        """Adds a set(s) to the database."""
         for set_id in set_ids:
             await self.add_specific(set_id, 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -54,6 +53,7 @@ class Smashy:
     @add.command(name='displayed_set')
     @checks.admin_or_permissions()
     async def add_displayed_set(self, *displayed_set_ids: str):
+        """Adds a displayed set(s) to the database."""
         for displayed_set_id in displayed_set_ids:
             await self.add_specific(displayed_set_id, 'set_ids')
             await self.add_specific(displayed_set_id, 'displayed_set_ids')
@@ -68,12 +68,14 @@ class Smashy:
 
     @commands.group(pass_context=True, no_pm=True, aliases=['delete', 'drop'])
     async def remove(self, ctx):
+        """Removes an item from the database."""
         if ctx.invoked_subcommand is None:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
 
     @remove.command(name='tournament')
     @checks.admin_or_permissions()
     async def remove_tournament(self, *tournament_names: str):
+        """Removes a tournament(s) from the database."""
         for tournament_name in tournament_names:
             await self.remove_specific(tournament_name, 'tournament_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -81,6 +83,7 @@ class Smashy:
     @remove.command(name='event')
     @checks.admin_or_permissions()
     async def remove_event(self, *event_names: str):
+        """Removes an event(s) from the database."""
         for event_name in event_names:
             await self.remove_specific(event_name, 'event_names')
         await self.bot.say('\N{OK HAND SIGN}')
@@ -88,23 +91,26 @@ class Smashy:
     @remove.command(name='bracket')
     @checks.admin_or_permissions()
     async def remove_bracket(self, *bracket_ids: str):
+        """Removes a brackets(s) from the database."""
         for bracket_id in bracket_ids:
             await self.remove_specific(bracket_id, 'bracket_ids')
-        await self.bot.say('\N{OK HAND SIGN}')
-
-    @remove.command(name='displayed_set')
-    @checks.admin_or_permissions()
-    async def remove_displayed_set(self, *displayed_set_ids: str):
-        for displayed_set_id in displayed_set_ids:
-            await self.remove_specific(displayed_set_id, 'displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove.command(name='set', pass_context=True)
     @checks.admin_or_permissions()
     async def remove_set(self, ctx, *set_ids: str):
+        """Removes a sets(s) from the database."""
         for set_id in set_ids:
             await self.remove_specific(set_id, 'set_ids')
         await ctx.invoke(self.remove_displayed_set, *set_ids)
+
+    @remove.command(name='displayed_set')
+    @checks.admin_or_permissions()
+    async def remove_displayed_set(self, *displayed_set_ids: str):
+        """Removes a displayed set(s) from the database."""
+        for displayed_set_id in displayed_set_ids:
+            await self.remove_specific(displayed_set_id, 'displayed_set_ids')
+        await self.bot.say('\N{OK HAND SIGN}')
 
     async def remove_specific(self, specific: str, specific_db_key: str):
         specifics = self.config.get(specific_db_key, [])
@@ -118,41 +124,46 @@ class Smashy:
     @remove.group(name='all', invoke_without_command=True)
     @checks.is_owner()
     async def remove_all(self):
+        """Removes everything from the database."""
         await self.remove_all_specific('displayed_set_ids')
         await self.remove_all_specific('set_ids')
         await self.remove_all_specific('event_names')
         await self.remove_all_specific('tournament_names')
         await self.remove_all_specific('bracket_ids')
-        await self.bot.say('\N{OK HAND SIGN}')
-
-    @remove_all.command(name='displayed_sets')
-    @checks.is_owner()
-    async def remove_all_displayed_sets(self):
-        await self.remove_all_specific('displayed_set_ids')
-        await self.bot.say('\N{OK HAND SIGN}')
-
-    @remove_all.command(name='sets')
-    @checks.is_owner()
-    async def remove_all_sets(self):
-        await self.remove_all_specific('set_ids')
-        await self.bot.say('\N{OK HAND SIGN}')
-
-    @remove_all.command(name='brackets')
-    @checks.is_owner()
-    async def remove_all_brackets(self):
-        await self.remove_all_specific('bracket_ids')
-        await self.bot.say('\N{OK HAND SIGN}')
-
-    @remove_all.command(name='events')
-    @checks.is_owner()
-    async def remove_all_events(self):
-        await self.remove_all_specific('event_names')
         await self.bot.say('\N{OK HAND SIGN}')
 
     @remove_all.command(name='tournaments')
     @checks.is_owner()
     async def remove_all_tournaments(self):
         await self.remove_all_specific('tournament_names')
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @remove_all.command(name='events')
+    @checks.is_owner()
+    async def remove_all_events(self):
+        """Removes all events from the database."""
+        await self.remove_all_specific('event_names')
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @remove_all.command(name='brackets')
+    @checks.is_owner()
+    async def remove_all_brackets(self):
+        """Removes all brackets from the database."""
+        await self.remove_all_specific('bracket_ids')
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @remove_all.command(name='sets')
+    @checks.is_owner()
+    async def remove_all_sets(self):
+        """Removes all sets from the database."""
+        await self.remove_all_specific('set_ids')
+        await self.bot.say('\N{OK HAND SIGN}')
+
+    @remove_all.command(name='displayed_sets')
+    @checks.is_owner()
+    async def remove_all_displayed_sets(self):
+        """Removes all displayed sets from the database."""
+        await self.remove_all_specific('displayed_set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
     async def remove_all_specific(self, specific_db_key: str):
@@ -166,14 +177,19 @@ class Smashy:
         await self.config.put(specific_db_key, specifics)
 
     # TODO catch exceptions
+    # TODO make this work with multiple tournaments
     @commands.group(pass_context=True, no_pm=True)
     async def get(self, ctx):
+        """Querys the API for items and adds them to the database."""
         if ctx.invoked_subcommand is None:
             await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
 
     @get.group(name='events', invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_events(self):
+        """Querys the API for events and adds them to the database.
+
+        The query is based on the tournament(s) that are saved in the database."""
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             try:
@@ -188,6 +204,9 @@ class Smashy:
     @get_events.group(name='tournament')
     @checks.admin_or_permissions()
     async def get_events_tournament(self, *tournament_names: str):
+        """Querys the API for events and adds them to the database.
+
+        The query is based on the given tournament name(s)."""
         for tournament_name in tournament_names:
             try:
                 event_names = smash.tournament_show_events(tournament_name)
@@ -201,6 +220,9 @@ class Smashy:
     @get.group(name='brackets', invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_brackets(self):
+        """Querys the API for brackets and adds them to the database.
+
+        The query is based on the tournament(s) and event(s) that are saved in the database."""
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             event_names = self.config.get('event_names', [])
@@ -217,6 +239,9 @@ class Smashy:
     @get_brackets.command(name='tournament')
     @checks.admin_or_permissions()
     async def get_brackets_tournament(self, *tournament_names: str):
+        """Querys the API for brackets and adds them to the database.
+
+        The query is based on the given tournament name(s)."""
         for tournament_name in tournament_names:
             event_names = self.config.get('event_names', [])
             for event_name in event_names:
@@ -228,6 +253,9 @@ class Smashy:
     @get_brackets.command(name='event')
     @checks.admin_or_permissions()
     async def get_brackets_event(self, *event_names: str):
+        """Querys the API for brackets and adds them to the database.
+
+        The query is based on the tournament(s) saved in the database and the given event name(s)."""
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             for event_name in event_names:
@@ -243,6 +271,9 @@ class Smashy:
     @get.group(name='sets', invoke_without_command=True)
     @checks.admin_or_permissions()
     async def get_sets(self):
+        """Querys the API for sets and adds them to the database.
+
+        The query is based on the tournament(s) and event(s) saved in the database."""
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             event_names = self.config.get('event_names', [])
@@ -259,6 +290,9 @@ class Smashy:
     @get_sets.command(name='tournament')
     @checks.admin_or_permissions()
     async def get_sets_tournament(self, *tournament_names: str):
+        """Querys the API for sets and adds them to the database.
+
+        The query is based on the given tournament name(s)."""
         for tournament_name in tournament_names:
             try:
                 events = smash.tournament_show_events(tournament_name)
@@ -278,6 +312,9 @@ class Smashy:
     @get_sets.command(name='event')
     @checks.admin_or_permissions()
     async def get_sets_event(self, *event_names: str):
+        """Querys the API for sets and adds them to the database.
+
+        The query is based on the tournament(s) saved in the database and the given event name(s)."""
         tournament_names = self.config.get('tournament_names', [])
         for tournament_name in tournament_names:
             for event_name in event_names:
@@ -293,6 +330,9 @@ class Smashy:
     @get_sets.command(name='bracket')
     @checks.admin_or_permissions()
     async def get_sets_bracket(self, *bracket_ids: str):
+        """Querys the API for sets and adds them to the database.
+
+        The query is based on the given bracket id(s)."""
         for bracket_id in bracket_ids:
             try:
                 sets = smash.bracket_show_sets(bracket_id)
@@ -304,9 +344,16 @@ class Smashy:
                 await self.add_specific(specific_set['id'], 'set_ids')
         await self.bot.say('\N{OK HAND SIGN}')
 
+    @commands.group(pass_context=True, no_pm=True, hidden=True)
+    async def smashy(self, ctx):
+        """This is a test command for development purposes."""
+        if ctx.invoked_subcommand is None:
+            await self.bot.say('Invalid subcommand passed: {0.subcommand_passed}'.format(ctx))
+
     @smashy.command(name='test', pass_context=True)
     @checks.admin_or_permissions()
     async def smashy_test(self, ctx):
+        """This is a test command for development purposes."""
         await ctx.invoke(self.remove_all_displayed_sets)
         await ctx.invoke(self.matchups)
         await self.bot.say('test successful')
@@ -314,6 +361,7 @@ class Smashy:
     @commands.command(name='setup', pass_context=True)
     @checks.admin_or_permissions()
     async def setup(self, ctx, *tournament_names: str):
+        """Sets up the database based on the given tournament name(s)"""
         # TODO make setup more efficient by calling the get.commands with the db data instead of calling the api
         await self.bot.say('Setting up tournament...')
         await ctx.invoke(self.add_tournament, *tournament_names)
@@ -331,10 +379,12 @@ class Smashy:
     @checks.mod_or_permissions()
     @commands.group(name='matchups', invoke_without_command=True, pass_context=True)
     async def matchups(self, ctx):
+        """Prints all upcoming matchups."""
         await ctx.invoke(self.matchups_timesensitive, False)
 
     @matchups.command(name='timesensitive', pass_context=True)
     async def matchups_timesensitive(self, ctx, timecheck: bool=True):
+        """Prints all upcoming matchups except ones where the starting time has not been reached yet."""
         displayed_set_ids = self.config.get('displayed_set_ids', [])
         displayed_set_ids_as_set = set(displayed_set_ids)
         set_ids = self.config.get('set_ids', [])
@@ -366,12 +416,13 @@ class Smashy:
 
     @commands.command(pass_context=True)
     async def next(self, ctx):
+        """Updates the database with the most recent sets and then prints the upcoming matchups timesensitively."""
         await self.bot.say('Getting sets')
         await ctx.invoke(self.get_sets)
         await self.bot.say('Printing matchups')
         await ctx.invoke(self.matchups_timesensitive)
 
-    # TODO: add a lookuptable for all smashgg and discord names
+    # TODO: add a lookuptable for all smash.gg and discord names
     @staticmethod
     def determine_player_name(entrant_id: str, server: discord.Server):
         entrant_name = smash.show('entrant', entrant_id, 'entrants')
@@ -393,7 +444,8 @@ class Smashy:
                     entrant_member = entrant_name
                 else:
                     entrant_member = entrant_member.mention
-                if first: #  TODO: Make this work with more than 2 people
+                # TODO: Make this work with more than 2 people
+                if first:
                     first = False
                 else:
                     entrant_members += ' / '
