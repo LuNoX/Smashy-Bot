@@ -1,3 +1,5 @@
+# Credit to Rapptz a.k.a Danny
+
 from discord.ext import commands
 from datetime import datetime
 import discord
